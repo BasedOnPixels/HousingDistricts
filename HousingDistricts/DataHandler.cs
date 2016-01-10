@@ -81,7 +81,7 @@ namespace HousingDistricts
                     {
                         if (HousingDistricts.Timeout(Start)) return false;
                         if (house != null && house.HouseArea.Intersects(new Rectangle(tilex, tiley, 1, 1)) && !HouseTools.WorldMismatch(house))
-                            if (!HTools.OwnsHouse(args.Player.UserID.ToString(), house.Name))
+                            if (!HTools.OwnsHouse(args.Player.User.ID.ToString(), house.Name))
                             {
                                 args.Player.SendTileSquare(tilex, tiley);
                                 return true;
@@ -112,7 +112,7 @@ namespace HousingDistricts
                     {
                         if (HousingDistricts.Timeout(Start)) return false;
                         if (house != null && house.HouseArea.Intersects(new Rectangle((int)(X / 16), (int)(Y / 16), 1, 1)) && !HouseTools.WorldMismatch(house))
-                            if (!HTools.CanVisitHouse(args.Player.UserID.ToString(), house))
+                            if (!HTools.CanVisitHouse(args.Player.User.ID.ToString(), house))
                             {
                                 args.Player.SendErrorMessage(string.Format("You do not have permission to teleport into house '{0}'.", house.Name));
                                 args.Player.Teleport(args.TPlayer.position.X, args.TPlayer.position.Y);
@@ -141,7 +141,7 @@ namespace HousingDistricts
                     {
                         if (HousingDistricts.Timeout(Start)) return false;
                         if (house != null && house.HouseArea.Intersects(new Rectangle(X, Y, 1, 1)) && !HouseTools.WorldMismatch(house))
-                            if (!HTools.OwnsHouse(args.Player.UserID.ToString(), house.Name))
+                            if (!HTools.OwnsHouse(args.Player.User.ID.ToString(), house.Name))
                             {
                                 args.Player.SendData(PacketTypes.PaintTile, "", X, Y, Main.tile[X, Y].color());
                                 return true;
@@ -169,7 +169,7 @@ namespace HousingDistricts
                     {
                         if (HousingDistricts.Timeout(Start)) return false;
                         if (house != null && house.HouseArea.Intersects(new Rectangle(X, Y, 1, 1)) && !HouseTools.WorldMismatch(house))
-                            if (!HTools.OwnsHouse(args.Player.UserID.ToString(), house.Name))
+                            if (!HTools.OwnsHouse(args.Player.User.ID.ToString(), house.Name))
                             {
                                 args.Player.SendData(PacketTypes.PaintWall, "", X, Y, Main.tile[X, Y].wallColor());
                                 return true;
@@ -230,7 +230,7 @@ namespace HousingDistricts
                     {
                         if (HousingDistricts.Timeout(Start)) return false;
                         if (house != null && house.HouseArea.Intersects(new Rectangle(tilex, tiley, 1, 1)) && !HouseTools.WorldMismatch(house))
-                            if (!HTools.OwnsHouse(args.Player.UserID.ToString(), house.Name)) // Changing to User.ID will result in having to check for User != null
+                            if (!HTools.OwnsHouse(args.Player.User.ID.ToString(), house.Name)) // Changing to User.ID will result in having to check for User != null
                             {
                                 args.Player.SendTileSquare(tilex, tiley);
                                 return true;
@@ -265,7 +265,7 @@ namespace HousingDistricts
                     {
                         if (HousingDistricts.Timeout(Start)) return false;
                         if (house != null && house.HouseArea.Intersects(new Rectangle(tilex, tiley, 1, 1)) && !HouseTools.WorldMismatch(house))
-                            if (!HTools.OwnsHouse(args.Player.UserID.ToString(), house.Name))
+                            if (!HTools.OwnsHouse(args.Player.User.ID.ToString(), house.Name))
                             {
                                 args.Player.SendTileSquare(tilex, tiley);
                                 return true;
@@ -300,7 +300,7 @@ namespace HousingDistricts
                         var house = HousingDistricts.Houses[i];
                         if (house != null && house.HouseArea.Intersects(new Rectangle(tilex, tiley, 1, 1)) && !HouseTools.WorldMismatch(house))
                         {
-                            if (!HTools.OwnsHouse(args.Player.UserID.ToString(), house.Name))
+                            if (!HTools.OwnsHouse(args.Player.User.ID.ToString(), house.Name))
                             {
                                 args.Player.SendMessage("Protected Chest", Color.Yellow);
                                 return true;
@@ -360,7 +360,7 @@ namespace HousingDistricts
                         if (HousingDistricts.Timeout(Start)) return false;
                         if (HTools.InAreaHouseName(x, y) == null)
                         {
-                            if (action == 0 || action == 1)
+                            if (action == 0 || action == 2)
                             {
                                 args.Player.SendErrorMessage("You must place this in your house.");
                                 args.Player.SendTileSquare(tilex, tiley, 3);
@@ -369,14 +369,14 @@ namespace HousingDistricts
                         }
                         if (house != null && house.HouseArea.Intersects(new Rectangle(tilex, tiley, 1, 1)) && !HouseTools.WorldMismatch(house))
                         {
-                            if (!HTools.OwnsHouse(args.Player.UserID.ToString(), house.Name))
+                            if (!HTools.OwnsHouse(args.Player.User.ID.ToString(), house.Name))
                             {
                                 args.Player.SendTileSquare(tilex, tiley);
                                 return true;
                             }
-                            if (HTools.OwnsHouse(args.Player.UserID.ToString(), house.Name))
+                            if (HTools.OwnsHouse(args.Player.User.ID.ToString(), house.Name))
                             {
-                                if (action == 0 || action == 1)
+                                if (action == 0 || action == 2)
                                 {
                                     int maxChests = 1000;
                                     int iCount = 0;
@@ -426,7 +426,7 @@ namespace HousingDistricts
                         var house = HousingDistricts.Houses[i];
                         if (house != null && house.HouseArea.Intersects(new Rectangle(tilex, tiley, 1, 1)) && !HouseTools.WorldMismatch(house))
                         {
-                            if (!HTools.OwnsHouse(args.Player.UserID.ToString(), house.Name))
+                            if (!HTools.OwnsHouse(args.Player.User.ID.ToString(), house.Name))
                             {
                                 args.Player.SendMessage("Protected Sign", Color.Yellow);
                                 return true;

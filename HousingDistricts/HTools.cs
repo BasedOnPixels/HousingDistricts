@@ -66,7 +66,7 @@ namespace HousingDistricts
 				var ID = house.Owners[i];
 				foreach (TSPlayer player in TShock.Players)
 					if (player != null)
-						if (player.UserID.ToString() == ID)
+						if (player.User.ID.ToString() == ID)
 							player.SendMessage(text, Color.LightSeaGreen);
 			}
 		}

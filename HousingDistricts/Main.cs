@@ -189,7 +189,7 @@ namespace HousingDistricts
 								{
 									if (house.Locked == 1 && !player.TSPlayer.Group.HasPermission("house.enterlocked"))
 									{
-										if (!HTools.CanVisitHouse(player.TSPlayer.UserID.ToString(), house))
+										if (!HTools.CanVisitHouse(player.TSPlayer.User.ID.ToString(), house))
 										{
 											player.TSPlayer.Teleport((int)player.LastTilePos.X * 16, (int)player.LastTilePos.Y * 16);
 											player.TSPlayer.SendMessage("House: '" + house.Name + "' Is locked", Color.LightSeaGreen);
@@ -199,7 +199,7 @@ namespace HousingDistricts
 											if (!player.CurHouses.Contains(house.Name) && HConfig.NotifyOnEntry)
 											{
 												NewCurHouses.Add(house.Name);
-												if (HTools.OwnsHouse(player.TSPlayer.UserID.ToString(), house.Name))
+												if (HTools.OwnsHouse(player.TSPlayer.User.ID.ToString(), house.Name))
 													if (HConfig.NotifySelf)
 														player.TSPlayer.SendMessage(HConfig.NotifyOnOwnHouseEntryString.Replace("$HOUSE_NAME", house.Name), Color.LightSeaGreen);
 												else
@@ -218,7 +218,7 @@ namespace HousingDistricts
 										if (!player.CurHouses.Contains(house.Name) && HConfig.NotifyOnEntry)
 										{
 											NewCurHouses.Add(house.Name);
-											if (HTools.OwnsHouse(player.TSPlayer.UserID.ToString(), house.Name))
+											if (HTools.OwnsHouse(player.TSPlayer.User.ID.ToString(), house.Name))
 												if (HConfig.NotifySelf)
 													player.TSPlayer.SendMessage(HConfig.NotifyOnOwnHouseEntryString.Replace("$HOUSE_NAME", house.Name), Color.LightSeaGreen);
 												else
@@ -260,7 +260,7 @@ namespace HousingDistricts
 								var cHouse = player.CurHouses[k];
 								if (!NewCurHouses.Contains(cHouse))
 								{
-									if (HTools.OwnsHouse(player.TSPlayer.UserID.ToString(), cHouse))
+									if (HTools.OwnsHouse(player.TSPlayer.User.ID.ToString(), cHouse))
 									{
 										if (HConfig.NotifySelf)
 											player.TSPlayer.SendMessage(HConfig.NotifyOnOwnHouseExitString.Replace("$HOUSE_NAME", cHouse), Color.LightSeaGreen);
@@ -303,7 +303,7 @@ namespace HousingDistricts
 
 				for (int i = 0; i < I; i++)
 				{
-					if (!HTools.OwnsHouse(tsplr.UserID.ToString(), Houses[i]) && Houses[i].HouseArea.Intersects(new Rectangle(tsplr.TileX, tsplr.TileY, 1, 1)))
+					if (!HTools.OwnsHouse(tsplr.User.ID.ToString(), Houses[i]) && Houses[i].HouseArea.Intersects(new Rectangle(tsplr.TileX, tsplr.TileY, 1, 1)))
 					{
 						e.Handled = true;
 						tsplr.SendErrorMessage("You can't build here!");
