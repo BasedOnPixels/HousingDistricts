@@ -11,7 +11,7 @@ using System.Reflection;
 
 namespace HousingDistricts
 {
-    [ApiVersion(1, 19)]
+    [ApiVersion(1, 22)]
     public class HousingDistricts : TerrariaPlugin
     {
 		public static HConfigFile HConfig { get; set; }
@@ -25,7 +25,7 @@ namespace HousingDistricts
 
 		public override string Author
 		{
-			get { return "Twitchy, Dingo, radishes, CoderCow and Simon311"; }
+			get { return "Twitchy, Dingo, radishes, CoderCow, Simon311, and Marcus101RR"; }
 		}
 
 		public override string Description

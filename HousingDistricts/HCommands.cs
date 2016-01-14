@@ -534,70 +534,73 @@ namespace HousingDistricts
                                 var house = HousingDistricts.Houses[h];
                                 try
                                 {
+                                    if(house != null)
+                                    {
                                     var UserID = house.Owners[0];
                                     var days = args.Parameters[1];
                                     TShockAPI.DB.User DbUser = new UserManager(TShock.DB).GetUserByID(System.Convert.ToInt32(UserID));
                                     TimeSpan t = DateTime.UtcNow.Subtract(DateTime.Parse(DbUser.LastAccessed));
-                                    if (!HouseTools.WorldMismatch(house) && t.Days >= System.Convert.ToInt32(days))
-                                    {
-                                        if (HTools.OwnsHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
+                                        if (!HouseTools.WorldMismatch(house) && t.Days >= System.Convert.ToInt32(days))
                                         {
-                                            int x = 0, y = 0, x2 = 0, y2 = 0, bottomx = 0, bottomy = 0;
-                                            var reader = TShock.DB.QueryReader("SELECT * FROM HousingDistrict WHERE Name=@0", house.Name);
-                                            if (reader.Read())
+                                            if (HTools.OwnsHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
                                             {
-                                                x = reader.Get<int>("TopX");
-                                                y = reader.Get<int>("TopY");
-                                                bottomx = reader.Get<int>("BottomX");
-                                                bottomy = reader.Get<int>("BottomY");
-                                                ply.SendMessage("Location: " + x + " X " + y + " Y " + bottomx + " X " + bottomy + " Y ", Color.Yellow);
-                                            }
-                                            x2 = x + bottomx - 1;
-                                            y2 = y + bottomy - 1;
-                                            ply.SendMessage("Location: " + x2 + " X2 " + y2 + " Y2 ", Color.Yellow);
-                                            for (int i = x; i <= x2; i++)
-                                            {
-                                                for (int j = y; j <= y2; j++)
+                                                int x = 0, y = 0, x2 = 0, y2 = 0, bottomx = 0, bottomy = 0;
+                                                var reader = TShock.DB.QueryReader("SELECT * FROM HousingDistrict WHERE Name=@0", house.Name);
+                                                if (reader.Read())
                                                 {
-                                                    var tile = Main.tile[i, j];
-                                                    tile.wall = 0;
-                                                    tile.active(false);
-                                                    tile.frameX = -1;
-                                                    tile.frameY = -1;
-                                                    tile.liquidType(0);
-                                                    tile.liquid = 0;
-                                                    tile.type = 0;
+                                                    x = reader.Get<int>("TopX");
+                                                    y = reader.Get<int>("TopY");
+                                                    bottomx = reader.Get<int>("BottomX");
+                                                    bottomy = reader.Get<int>("BottomY");
+                                                    ply.SendMessage("Location: " + x + " X " + y + " Y " + bottomx + " X " + bottomy + " Y ", Color.Yellow);
                                                 }
-                                            }
-                                            int lowX = Netplay.GetSectionX(x);
-                                            int highX = Netplay.GetSectionX(x2);
-                                            int lowY = Netplay.GetSectionY(y);
-                                            int highY = Netplay.GetSectionY(y2);
-                                            foreach (RemoteClient sock in Netplay.Clients.Where(s => s.IsActive))
-                                            {
-                                                for (int i = lowX; i <= highX; i++)
+                                                x2 = x + bottomx - 1;
+                                                y2 = y + bottomy - 1;
+                                                ply.SendMessage("Location: " + x2 + " X2 " + y2 + " Y2 ", Color.Yellow);
+                                                for (int i = x; i <= x2; i++)
                                                 {
-                                                    for (int j = lowY; j <= highY; j++)
-                                                        sock.TileSections[i, j] = false;
+                                                    for (int j = y; j <= y2; j++)
+                                                    {
+                                                        var tile = Main.tile[i, j];
+                                                        tile.wall = 0;
+                                                        tile.active(false);
+                                                        tile.frameX = -1;
+                                                        tile.frameY = -1;
+                                                        tile.liquidType(0);
+                                                        tile.liquid = 0;
+                                                        tile.type = 0;
+                                                    }
                                                 }
+                                                int lowX = Netplay.GetSectionX(x);
+                                                int highX = Netplay.GetSectionX(x2);
+                                                int lowY = Netplay.GetSectionY(y);
+                                                int highY = Netplay.GetSectionY(y2);
+                                                foreach (RemoteClient sock in Netplay.Clients.Where(s => s.IsActive))
+                                                {
+                                                    for (int i = lowX; i <= highX; i++)
+                                                    {
+                                                        for (int j = lowY; j <= highY; j++)
+                                                            sock.TileSections[i, j] = false;
+                                                    }
+                                                }
+                                                reader.Dispose();
+                                                try
+                                                {
+                                                    TShock.DB.Query("DELETE FROM HousingDistrict WHERE Name=@0", house.Name);
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    TShock.Log.Error(ex.ToString());
+                                                }
+                                                HousingDistricts.Houses.Remove(house);
+                                                ply.SendMessage("House: " + house.Name + " deleted", Color.Yellow);
+                                                TShock.Log.Info("{0} deleted {1} House", ply.Name, house.Name);
                                             }
-                                            reader.Dispose();
-                                            try
+                                            else
                                             {
-                                                TShock.DB.Query("DELETE FROM HousingDistrict WHERE Name=@0", house.Name);
+                                                ply.SendErrorMessage("You do not own house: " + house.Name);
+                                                break;
                                             }
-                                            catch (Exception ex)
-                                            {
-                                                TShock.Log.Error(ex.ToString());
-                                            }
-                                            HousingDistricts.Houses.Remove(house);
-                                            ply.SendMessage("House: " + house.Name + " deleted", Color.Yellow);
-                                            TShock.Log.Info("{0} deleted {1} House", ply.Name, house.Name);
-                                        }
-                                        else
-                                        {
-                                            ply.SendErrorMessage("You do not own house: " + house.Name);
-                                            break;
                                         }
                                     }
                                 }
