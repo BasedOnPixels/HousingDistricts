@@ -385,9 +385,9 @@ namespace HousingDistricts
                                         if (Main.chest[iChest] != null && house.HouseArea.Intersects(new Rectangle(Main.chest[iChest].x, Main.chest[iChest].y, 1, 1)))
                                         {
                                             iCount++;
-                                            if (iCount >= 2)
+                                            if (iCount >= HousingDistricts.HConfig.MaxChests)
                                             {
-                                                args.Player.SendErrorMessage("Houses must have less than 3 chests.");
+                                                args.Player.SendErrorMessage("Houses must contain {0} or less.", HousingDistricts.HConfig.MaxChests);
                                                 args.Player.SendTileSquare(x, y, 3);
                                                 return true;
                                             }
