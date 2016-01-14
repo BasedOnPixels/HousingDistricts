@@ -42,12 +42,10 @@ namespace HousingDistricts
 		public string OverlapHouses_description = "Can players create houses that overlap another players' house?";
 		public bool AllowRod = true;
 		public string AllowRod_description = "Can players use RoD to teleport into houses?";
-		/*
-		public bool RecursiveNumericPermissions = false;
-		public string RecursiveNumericPermissions_description = "Makes house.count. and house.size permissions recursive. Might affect performance.";
-		 */
+        public int MaxChests = 2;
+        public string MaxChests_description = "The maximum chests allowed in a house.";
 
-		public static HConfigFile Read(string path)
+        public static HConfigFile Read(string path)
 		{
 			if (!File.Exists(path))
 				return new HConfigFile();
