@@ -290,10 +290,18 @@ namespace HousingDistricts
 			for (int i = 0; i < I; i++)
 			{
 				var house = HousingDistricts.Houses[i];
-				if (house.Name == name)
+				if (house != null && house.Name == name)
 					return house;
 			}
-			return null;
+
+            string lowerName = name.ToLower();
+            for (int i = 0; i < I; i++)
+            {
+                var house = HousingDistricts.Houses[i];
+                if (house != null && house.Name.ToLower().StartsWith(lowerName))
+                    return house;
+            }
+            return null;
 		}
 	}
 }
