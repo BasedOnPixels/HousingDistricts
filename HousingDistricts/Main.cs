@@ -152,10 +152,10 @@ namespace HousingDistricts
 			List<string> perms = new List<string>();
 			perms.Add("house.use");
 			perms.Add("house.lock");
-			perms.Add("house.root");
+            perms.Add("house.root");
 
-			#region Commands
-			Commands.ChatCommands.Add(new Command(perms, HCommands.House, "house"));
+            #region Commands
+            Commands.ChatCommands.Add(new Command(perms, HCommands.House, "house"));
 			Commands.ChatCommands.Add(new Command("tshock.canchat", HCommands.TellAll, "all"));
 			Commands.ChatCommands.Add(new Command("house.root", HCommands.HouseReload, "housereload"));
 			Commands.ChatCommands.Add(new Command("house.root", HCommands.HouseWipe, "housewipe"));
@@ -200,9 +200,11 @@ namespace HousingDistricts
 											{
 												NewCurHouses.Add(house.Name);
 												if (HTools.OwnsHouse(player.TSPlayer.User.ID.ToString(), house.Name))
-													if (HConfig.NotifySelf)
-														player.TSPlayer.SendMessage(HConfig.NotifyOnOwnHouseEntryString.Replace("$HOUSE_NAME", house.Name), Color.LightSeaGreen);
-												else
+                                                {
+                                                    if (HConfig.NotifySelf)
+                                                        player.TSPlayer.SendMessage(HConfig.NotifyOnOwnHouseEntryString.Replace("$HOUSE_NAME", house.Name), Color.LightSeaGreen);
+                                                }
+                                                else
 												{
 													if (HConfig.NotifyVisitor)
 														player.TSPlayer.SendMessage(HConfig.NotifyOnEntryString.Replace("$HOUSE_NAME", house.Name), Color.LightSeaGreen);
@@ -219,16 +221,18 @@ namespace HousingDistricts
 										{
 											NewCurHouses.Add(house.Name);
 											if (HTools.OwnsHouse(player.TSPlayer.User.ID.ToString(), house.Name))
-												if (HConfig.NotifySelf)
-													player.TSPlayer.SendMessage(HConfig.NotifyOnOwnHouseEntryString.Replace("$HOUSE_NAME", house.Name), Color.LightSeaGreen);
-												else
-												{
-													if (HConfig.NotifyVisitor)
-														player.TSPlayer.SendMessage(HConfig.NotifyOnEntryString.Replace("$HOUSE_NAME", house.Name), Color.LightSeaGreen);
+                                            {
+                                                if (HConfig.NotifySelf)
+                                                    player.TSPlayer.SendMessage(HConfig.NotifyOnOwnHouseEntryString.Replace("$HOUSE_NAME", house.Name), Color.LightSeaGreen);
+                                            }
+                                            else
+											{
+												if (HConfig.NotifyVisitor)
+													player.TSPlayer.SendMessage(HConfig.NotifyOnEntryString.Replace("$HOUSE_NAME", house.Name), Color.LightSeaGreen);
 
-													if (HConfig.NotifyOwner)
-														HTools.BroadcastToHouseOwners(house.Name, HConfig.NotifyOnOtherEntryString.Replace("$PLAYER_NAME", player.TSPlayer.Name).Replace("$HOUSE_NAME", house.Name));
-												}
+												if (HConfig.NotifyOwner)
+													HTools.BroadcastToHouseOwners(house.Name, HConfig.NotifyOnOtherEntryString.Replace("$PLAYER_NAME", player.TSPlayer.Name).Replace("$HOUSE_NAME", house.Name));
+											}
 										}
 									}
 								}
