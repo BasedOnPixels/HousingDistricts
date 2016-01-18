@@ -14,8 +14,9 @@ namespace HousingDistricts
 		{
 			string AdminHouse = "house.admin"; // Seems right to keep the actual permission names in one place, for easy editing
 			string UseHouse = "house.use";
-			string LockHouse = "house.lock";
-			string cmd = "help";
+            string LockHouse = "house.lock";
+            string TeleportHouse = "house.tp";
+            string cmd = "help";
 			var ply = args.Player; // Makes the code shorter
 			if (args.Parameters.Count > 0)
 				cmd = args.Parameters[0].ToLower();
@@ -23,13 +24,8 @@ namespace HousingDistricts
 			var player = HTools.GetPlayerByID(args.Player.Index);
 			switch (cmd)
 			{
-				case "name":
-					{
-						ply.SendMessage("Hit a block to get the name of the house", Color.Yellow);
-						player.AwaitingHouseName = true;
-						break;
-					}
-				case "set":
+                #region Set
+                case "set":
 					{
 						if (!ply.Group.HasPermission(UseHouse))
 						{
@@ -57,7 +53,9 @@ namespace HousingDistricts
 
 						break;
 					}
-				case "define":
+                #endregion
+                #region Define
+                case "define":
 					{
 						if (!ply.Group.HasPermission(UseHouse))
 						{
@@ -172,7 +170,106 @@ namespace HousingDistricts
 
 						break;
 					}
-				case "allow":
+                #endregion
+                #region Redefine
+                case "redefine":
+                    {
+                        if (!ply.Group.HasPermission(UseHouse))
+                        {
+                            ply.SendErrorMessage("You do not have permission to use this command!");
+                            return;
+                        }
+                        if (!ply.IsLoggedIn || ply.User.ID == 0)
+                        {
+                            ply.SendErrorMessage("You must log-in to use House Protection.");
+                            return;
+                        }
+                        if (args.Parameters.Count > 1)
+                        {
+                            if (!ply.TempPoints.Any(p => p == Point.Zero))
+                            {
+                                string houseName = String.Join(" ", args.Parameters.GetRange(1, args.Parameters.Count - 1));
+                                if (HTools.OwnsHouse(ply.User.ID.ToString(), houseName) || ply.Group.HasPermission(AdminHouse))
+                                {
+                                    var x = Math.Min(ply.TempPoints[0].X, ply.TempPoints[1].X);
+                                    var y = Math.Min(ply.TempPoints[0].Y, ply.TempPoints[1].Y);
+                                    var width = Math.Abs(ply.TempPoints[0].X - ply.TempPoints[1].X) + 1;
+                                    var height = Math.Abs(ply.TempPoints[0].Y - ply.TempPoints[1].Y) + 1;
+                                    var maxSize = HTools.MaxSize(ply);
+
+                                    if ((width * height) <= maxSize && width >= HousingDistricts.HConfig.MinHouseWidth && height >= HousingDistricts.HConfig.MinHouseHeight)
+                                    {
+                                        Rectangle newHouseR = new Rectangle(x, y, width, height);
+                                        for (int i = 0; i < HousingDistricts.Houses.Count; i++)
+                                        {
+                                            var house = HousingDistricts.Houses[i];
+                                            if (!HouseTools.WorldMismatch(house) && (newHouseR.Intersects(house.HouseArea) && !house.Owners.Contains(ply.User.ID.ToString())) && !HousingDistricts.HConfig.OverlapHouses)
+                                            {
+                                                ply.SendErrorMessage("Your selected area overlaps another players' house, which is not allowed.");
+                                                return;
+                                            }
+                                        }
+                                        if (newHouseR.Intersects(new Rectangle(Main.spawnTileX, Main.spawnTileY, 1, 1)))
+                                        {
+                                            ply.SendErrorMessage("Your selected area overlaps spawnpoint, which is not allowed.");
+                                            return;
+                                        }
+                                        for (int i = 0; i < TShock.Regions.Regions.Count; i++)
+                                        {
+                                            var Region = TShock.Regions.Regions[i];
+                                            if (newHouseR.Intersects(Region.Area) && !Region.HasPermissionToBuildInRegion(ply))
+                                            {
+                                                ply.SendErrorMessage(string.Format("Your selected area overlaps region '{0}', which is not allowed.", Region.Name));
+                                                return;
+                                            }
+                                        }
+                                        if (HouseTools.RedefineHouse(x, y, width, height, houseName))
+                                        {
+                                            ply.TempPoints[0] = Point.Zero;
+                                            ply.TempPoints[1] = Point.Zero;
+                                            ply.SendMessage("Redefined house " + houseName, Color.Yellow);
+                                        }
+                                        else
+                                            ply.SendErrorMessage("Error redefining house " + houseName);
+                                    }
+                                    else
+                                    {
+                                        if ((width * height) >= maxSize)
+                                        {
+                                            ply.SendErrorMessage("Your house exceeds the maximum size of " + maxSize.ToString() + " blocks.");
+                                            ply.SendErrorMessage("Width: " + width.ToString() + ", Height: " + height.ToString() + ". Points have been cleared.");
+                                            ply.TempPoints[0] = Point.Zero;
+                                            ply.TempPoints[1] = Point.Zero;
+                                        }
+                                        else if (width < HousingDistricts.HConfig.MinHouseWidth)
+                                        {
+                                            ply.SendErrorMessage("Your house width is smaller than server minimum of " + HousingDistricts.HConfig.MinHouseWidth.ToString() + " blocks.");
+                                            ply.SendErrorMessage("Width: " + width.ToString() + ", Height: " + height.ToString() + ". Points have been cleared.");
+                                            ply.TempPoints[0] = Point.Zero;
+                                            ply.TempPoints[1] = Point.Zero;
+                                        }
+                                        else
+                                        {
+                                            ply.SendErrorMessage("Your house height is smaller than server minimum of " + HousingDistricts.HConfig.MinHouseHeight.ToString() + " blocks.");
+                                            ply.SendErrorMessage("Width: " + width.ToString() + ", Height: " + height.ToString() + ". Points have been cleared.");
+                                            ply.TempPoints[0] = Point.Zero;
+                                            ply.TempPoints[1] = Point.Zero;
+                                        }
+                                    }
+                                }
+                                else
+                                    ply.SendErrorMessage("You do not own house: " + houseName);
+                            }
+                            else
+                                ply.SendErrorMessage("Points not set up yet");
+                        }
+                        else
+                            ply.SendErrorMessage("Invalid syntax! Proper syntax: /house redefine [name]");
+                        break;
+                    }
+                #endregion
+                #region Allow
+                case "allow":
 					{
 						if (!ply.Group.HasPermission(UseHouse))
 						{
@@ -218,7 +315,9 @@ namespace HousingDistricts
 							ply.SendErrorMessage("Invalid syntax! Proper syntax: /house allow [name] [house]");
 						break;
 					}
-				case "disallow":
+                #endregion
+                #region Disallow
+                case "disallow":
 					{
 						if (!ply.Group.HasPermission(UseHouse))
 						{
@@ -259,7 +358,33 @@ namespace HousingDistricts
 							ply.SendErrorMessage("Invalid syntax! Proper syntax: /house disallow [name] [house]");
 						break;
 					}
-				case "delete":
+                #endregion
+                #region Teleport
+                case "tp":
+                    {
+                        if (!ply.Group.HasPermission(TeleportHouse))
+                        {
+                            ply.SendErrorMessage("You do not have access to this command.");
+                            return;
+                        }
+                        if (args.Parameters.Count > 1)
+                        {
+                            var house = HouseTools.GetHouseByName(args.Parameters[1]);
+                            if (house == null)
+                            {
+                                ply.SendErrorMessage("The {0} does not exist!", args.Parameters[1]);
+                                return;
+                            }
+                            ply.Teleport(house.HouseArea.Center.X, house.HouseArea.Center.Y);
+                            ply.SendInfoMessage("You have been teleported to {0}.", house.Name);
+                            TShock.Log.Info("{0} teleported to a house: {1}.", ply.Name, house.Name);
+                        }
+
+                        break;
+                    }
+                #endregion
+                #region Delete
+                case "delete":
 					{
 						if (!ply.Group.HasPermission(UseHouse))
 						{
@@ -348,9 +473,11 @@ namespace HousingDistricts
                         }
                         break;
                     }
+                #endregion
+                #region Purge House
                 case "purge":
                     {
-                        if (!ply.Group.HasPermission(UseHouse))
+                        if (!ply.Group.HasPermission(AdminHouse))
                         {
                             ply.SendErrorMessage("You do not have permission to use this command!");
                             return;
@@ -513,9 +640,11 @@ namespace HousingDistricts
                         }
                         break;
                     }
+                #endregion
+                #region Purge Expired Houses
                 case "purgeexp":
                     {
-                        if (!ply.Group.HasPermission(UseHouse))
+                        if (!ply.Group.HasPermission(AdminHouse))
                         {
                             ply.SendErrorMessage("You do not have permission to use this command!");
                             return;
@@ -536,10 +665,10 @@ namespace HousingDistricts
                                 {
                                     if(house != null)
                                     {
-                                    var UserID = house.Owners[0];
-                                    var days = args.Parameters[1];
-                                    TShockAPI.DB.User DbUser = new UserManager(TShock.DB).GetUserByID(System.Convert.ToInt32(UserID));
-                                    TimeSpan t = DateTime.UtcNow.Subtract(DateTime.Parse(DbUser.LastAccessed));
+                                        var UserID = house.Owners[0];
+                                        var days = args.Parameters[1];
+                                        TShockAPI.DB.User DbUser = new UserManager(TShock.DB).GetUserByID(System.Convert.ToInt32(UserID));
+                                        TimeSpan t = DateTime.UtcNow.Subtract(DateTime.Parse(DbUser.LastAccessed));
                                         if (!HouseTools.WorldMismatch(house) && t.Days >= System.Convert.ToInt32(days))
                                         {
                                             if (HTools.OwnsHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
@@ -552,11 +681,11 @@ namespace HousingDistricts
                                                     y = reader.Get<int>("TopY");
                                                     bottomx = reader.Get<int>("BottomX");
                                                     bottomy = reader.Get<int>("BottomY");
-                                                    ply.SendMessage("Location: " + x + " X " + y + " Y " + bottomx + " X " + bottomy + " Y ", Color.Yellow);
+                                                    ply.SendInfoMessage("Location: {0}, {1} ({2}x{3}).", x, y, bottomx, bottomy);
                                                 }
                                                 x2 = x + bottomx - 1;
                                                 y2 = y + bottomy - 1;
-                                                ply.SendMessage("Location: " + x2 + " X2 " + y2 + " Y2 ", Color.Yellow);
+
                                                 for (int i = x; i <= x2; i++)
                                                 {
                                                     for (int j = y; j <= y2; j++)
@@ -593,7 +722,7 @@ namespace HousingDistricts
                                                     TShock.Log.Error(ex.ToString());
                                                 }
                                                 HousingDistricts.Houses.Remove(house);
-                                                ply.SendMessage("House: " + house.Name + " deleted", Color.Yellow);
+                                                ply.SendMessage("House: " + house.Name + " deleted.", Color.Yellow);
                                                 TShock.Log.Info("{0} deleted {1} House", ply.Name, house.Name);
                                             }
                                             else
@@ -617,6 +746,8 @@ namespace HousingDistricts
                         }
                         break;
                     }
+                #endregion
+                #region Clear
                 case "clear":
 					{
 						if (!ply.Group.HasPermission(UseHouse))
@@ -630,7 +761,9 @@ namespace HousingDistricts
 						ply.SendMessage("Cleared points!", Color.Yellow);
 						break;
 					}
-				case "list":
+                #endregion
+                #region List
+                case "list":
 					{
 						//How many regions per page
 						const int pagelimit = 15;
@@ -666,15 +799,13 @@ namespace HousingDistricts
 							return;
 						}
 
-						//Check if they are trying to access a page that doesn't exist.
-						int pagecount = houses.Count / pagelimit;
+                        int pagecount = houses.Count / pagelimit;
 						if (page > pagecount)
 						{
 							ply.SendErrorMessage(string.Format("Page number exceeds pages ({0}/{1})", page + 1, pagecount + 1));
 							return;
 						}
 
-						//Display the current page and the number of pages.
 						ply.SendMessage(string.Format("Current Houses ({0}/{1}):", page + 1, pagecount + 1), Color.Green);
 
 						//Add up to pagelimit names to a list
@@ -692,6 +823,8 @@ namespace HousingDistricts
 
 						break;
 					}
+                #endregion
+                #region Resize
                 case "resize":
                     {
                         int iAmount = 0;
@@ -721,103 +854,9 @@ namespace HousingDistricts
                             ply.SendErrorMessage("Invalid syntax! Proper syntax: /house resize [u/d/l/r] [amount]");
                         break;
                     }
-                case "redefine":
-					{
-						if (!ply.Group.HasPermission(UseHouse))
-						{
-							ply.SendErrorMessage("You do not have permission to use this command!");
-							return;
-						}
-						if (!ply.IsLoggedIn || ply.User.ID == 0)
-						{
-							ply.SendErrorMessage("You must log-in to use House Protection.");
-							return;
-						}
-						if (args.Parameters.Count > 1)
-						{
-							if (!ply.TempPoints.Any(p => p == Point.Zero))
-							{
-								string houseName = String.Join(" ", args.Parameters.GetRange(1, args.Parameters.Count - 1));
-								if (HTools.OwnsHouse(ply.User.ID.ToString(), houseName) || ply.Group.HasPermission(AdminHouse))
-								{
-									var x = Math.Min(ply.TempPoints[0].X, ply.TempPoints[1].X);
-									var y = Math.Min(ply.TempPoints[0].Y, ply.TempPoints[1].Y);
-									var width = Math.Abs(ply.TempPoints[0].X - ply.TempPoints[1].X) + 1;
-									var height = Math.Abs(ply.TempPoints[0].Y - ply.TempPoints[1].Y) + 1;
-									var maxSize = HTools.MaxSize(ply);
-
-									if ((width * height) <= maxSize && width >= HousingDistricts.HConfig.MinHouseWidth && height >= HousingDistricts.HConfig.MinHouseHeight)
-									{
-										Rectangle newHouseR = new Rectangle(x, y, width, height);
-										for (int i = 0; i < HousingDistricts.Houses.Count; i++)
-										{
-											var house = HousingDistricts.Houses[i];
-											if (!HouseTools.WorldMismatch(house) && (newHouseR.Intersects(house.HouseArea) && !house.Owners.Contains(ply.User.ID.ToString())) && !HousingDistricts.HConfig.OverlapHouses)
-											{ // user is allowed to intersect their own house
-												ply.SendErrorMessage("Your selected area overlaps another players' house, which is not allowed.");
-												return;
-											}
-										}
-										if (newHouseR.Intersects(new Rectangle(Main.spawnTileX, Main.spawnTileY, 1, 1)))
-										{
-											ply.SendErrorMessage("Your selected area overlaps spawnpoint, which is not allowed.");
-											return;
-										}
-										for (int i = 0; i < TShock.Regions.Regions.Count; i++)
-										{
-											var Region = TShock.Regions.Regions[i];
-											if (newHouseR.Intersects(Region.Area) && !Region.HasPermissionToBuildInRegion(ply))
-											{
-												ply.SendErrorMessage(string.Format("Your selected area overlaps region '{0}', which is not allowed.", Region.Name));
-												return;
-											}
-										}
-										if (HouseTools.RedefineHouse(x, y, width, height, houseName))
-										{
-											ply.TempPoints[0] = Point.Zero;
-											ply.TempPoints[1] = Point.Zero;
-											ply.SendMessage("Redefined house " + houseName, Color.Yellow);
-										}
-										else
-											ply.SendErrorMessage("Error redefining house " + houseName);
-									}
-									else
-									{
-										if ((width * height) >= maxSize)
-										{
-											ply.SendErrorMessage("Your house exceeds the maximum size of " + maxSize.ToString() + " blocks.");
-											ply.SendErrorMessage("Width: " + width.ToString() + ", Height: " + height.ToString() + ". Points have been cleared.");
-											ply.TempPoints[0] = Point.Zero;
-											ply.TempPoints[1] = Point.Zero;
-										}
-										else if (width < HousingDistricts.HConfig.MinHouseWidth)
-										{
-											ply.SendErrorMessage("Your house width is smaller than server minimum of " + HousingDistricts.HConfig.MinHouseWidth.ToString() + " blocks.");
-											ply.SendErrorMessage("Width: " + width.ToString() + ", Height: " + height.ToString() + ". Points have been cleared.");
-											ply.TempPoints[0] = Point.Zero;
-											ply.TempPoints[1] = Point.Zero;
-										}
-										else
-										{
-											ply.SendErrorMessage("Your house height is smaller than server minimum of " + HousingDistricts.HConfig.MinHouseHeight.ToString() + " blocks.");
-											ply.SendErrorMessage("Width: " + width.ToString() + ", Height: " + height.ToString() + ". Points have been cleared.");
-											ply.TempPoints[0] = Point.Zero;
-											ply.TempPoints[1] = Point.Zero;
-										}
-									}
-								}
-								else
-									ply.SendErrorMessage("You do not own house: " + houseName);
-							}
-							else
-								ply.SendErrorMessage("Points not set up yet");
-						}
-						else
-							ply.SendErrorMessage("Invalid syntax! Proper syntax: /house redefine [name]");
-						break;
-					}
-
-				case "info":
+                #endregion
+                #region Info
+                case "info":
 					{
 						if ((!ply.IsLoggedIn || ply.User.ID == 0) && ply.RealPlayer || !ply.Group.HasPermission(UseHouse))
 						{
@@ -827,7 +866,11 @@ namespace HousingDistricts
                         if (args.Parameters.Count > 1)
                         {
                             var house = HouseTools.GetHouseByName(args.Parameters[1]);
-                            if (house == null) { ply.SendErrorMessage("No such house!"); return; }
+                            if (house == null)
+                            {
+                                ply.SendErrorMessage("No such house!");
+                                return;
+                            }
                             string OwnerNames = "";
                             string VisitorNames = "";
                             for (int i = 0; i < house.Owners.Count; i++)
@@ -903,11 +946,13 @@ namespace HousingDistricts
                             ply.SendErrorMessage("Invalid syntax! Proper syntax: /house info [house]");
 						break;
 					}
+                #endregion
+                #region Expired House
                 case "expired":
                     {
-                        if ((!ply.IsLoggedIn || ply.User.ID == 0) && ply.RealPlayer || !ply.Group.HasPermission(UseHouse))
+                        if (!ply.Group.HasPermission(AdminHouse))
                         {
-                            ply.SendErrorMessage("You do not have permission to use this command!");
+                            ply.SendErrorMessage("You do not have access to this command.");
                             return;
                         }
                         if (args.Parameters.Count == 2)
@@ -941,7 +986,7 @@ namespace HousingDistricts
                                         ply.SendMessage("House '" + house.Name + "':", Color.LawnGreen);
                                         ply.SendMessage("Owners: " + OwnerNames, Color.LawnGreen);
                                         ply.SendMessage("Last Accessed: " + t.Days + "D, " + t.Hours + "H, " + t.Minutes + "M", Color.LawnGreen);
-                                        TShock.Log.Info("{0} searched House Info: {1}", ply.Name, house.Name);
+                                        TShock.Log.Info("{0} searched Expired House Info: {1}", ply.Name, house.Name);
                                     }
                                 }
                                 catch (Exception ex)
@@ -955,6 +1000,8 @@ namespace HousingDistricts
                             ply.SendErrorMessage("Invalid syntax! Proper syntax: /house expired <days>");
                         break;
                     }
+                #endregion
+                #region Lock
                 case "lock":
 					{
 						if (!ply.Group.HasPermission(LockHouse))
@@ -991,13 +1038,17 @@ namespace HousingDistricts
 							ply.SendErrorMessage("You do not have access to that command.");
 						break;
 					}
-				case "reload":
+                #endregion
+                #region Reload Plugin
+                case "reload":
 					{
 						if (ply.Group.HasPermission("house.root")) 
 							HouseReload(args);
 						break;
 					}
-				case "chat":
+                #endregion
+                #region Chat
+                case "chat":
 					{
 						if (!ply.Group.HasPermission(UseHouse))
 						{
@@ -1043,7 +1094,9 @@ namespace HousingDistricts
 							ply.SendErrorMessage("Invalid syntax! Use /house chat <housename> (on|off)");
 						break;
 					}
-				case "addvisitor":
+                #endregion
+                #region Add Visitor
+                case "addvisitor":
 					{
 						if (!ply.Group.HasPermission(UseHouse))
 						{
@@ -1086,7 +1139,9 @@ namespace HousingDistricts
 							ply.SendErrorMessage("Invalid syntax! Proper syntax: /house addvisitor [name] [house]");
 						break;
 					}
-				case "delvisitor":
+                #endregion
+                #region Delete Visitor
+                case "delvisitor":
 					{
 						if (!ply.Group.HasPermission(UseHouse))
 						{
@@ -1124,13 +1179,14 @@ namespace HousingDistricts
 							ply.SendErrorMessage("Invalid syntax! Proper syntax: /house delvisitor [name] [house]");
 						break;
 					}
-				default:
+                #endregion
+                default:
 					{
 						ply.SendMessage("To create a house, use these commands:", Color.Lime);
 						ply.SendMessage("/house set 1", Color.Lime);
 						ply.SendMessage("/house set 2", Color.Lime);
 						ply.SendMessage("/house define <name>", Color.Lime);
-						ply.SendMessage("Other /house commands: list, allow, disallow, define, redefine, name, delete, resize, purge, expired, clear, info, chat, addvisitor, delvisitor, lock, reload", Color.Lime);
+						ply.SendMessage("Other /house commands: list, allow, disallow, define, redefine, tp, delete, resize, purge, purgeexp, expired, clear, info, chat, addvisitor, delvisitor, lock, reload", Color.Lime);
 						break;
 					}
 			}
