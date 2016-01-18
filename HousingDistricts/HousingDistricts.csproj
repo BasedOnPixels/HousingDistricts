@@ -54,9 +54,11 @@
   <ItemGroup>
     <Reference Include="Mono.Data.Sqlite">
       <HintPath>Refs\Mono.Data.Sqlite.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="MySql.Data">
       <HintPath>Refs\MySql.Data.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>Refs\Newtonsoft.Json.dll</HintPath>
