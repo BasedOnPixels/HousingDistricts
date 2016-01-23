@@ -281,81 +281,72 @@ namespace HousingDistricts
 							ply.SendErrorMessage("You must log-in to use House Protection.");
 							return;
 						}
-						if (args.Parameters.Count > 2)
-						{
-							string playerName = args.Parameters[1];
-							User playerID;
-							var house = HouseTools.GetHouseByName(String.Join(" ", args.Parameters.GetRange(2, args.Parameters.Count - 2)));
-							if (house == null) { ply.SendErrorMessage("No such house!"); return; }
-							string houseName = house.Name;
-							if (HTools.OwnsHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
-							{
-								if ((playerID = TShock.Users.GetUserByName(playerName)) != null)
-								{
-									if (!HTools.OwnsHouse(playerID.ID.ToString(), house))
-									{
-										if (HouseTools.AddNewUser(houseName, playerID.ID.ToString()))
-										{
-											ply.SendMessage("Added user " + playerName + " to " + houseName, Color.Yellow);
-											TShock.Log.ConsoleInfo("{0} has allowed {1} to house: \"{2}\".", ply.User.Name, playerID.Name, houseName);
-										}
-										else
-											ply.SendErrorMessage("House " + houseName + " not found");
-									}
-									else
-										ply.SendErrorMessage("Player " + playerName + " is already allowed to build in '" + house.Name + "'.");
-								}
-								else
-									ply.SendErrorMessage("Player " + playerName + " not found");
-							}
-							else
-								ply.SendErrorMessage("You do not own house: " + houseName);
-						}
+                        if (args.Parameters.Count > 3)
+                        {
+                            switch (args.Parameters[1])
+                            {
+                                case "add":
+                                    {
+                                        string playerName = args.Parameters[2];
+                                        User playerID;
+                                        var house = HouseTools.GetHouseByName(String.Join(" ", args.Parameters.GetRange(3, args.Parameters.Count - 3)));
+                                        if (house == null) { ply.SendErrorMessage("No such house!"); return; }
+                                        string houseName = house.Name;
+                                        if (HTools.OwnsHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
+                                        {
+                                            if ((playerID = TShock.Users.GetUserByName(playerName)) != null)
+                                            {
+                                                if (!HTools.OwnsHouse(playerID.ID.ToString(), house))
+                                                {
+                                                    if (HouseTools.AddNewUser(houseName, playerID.ID.ToString()))
+                                                    {
+                                                        ply.SendMessage("Added user " + playerName + " to " + houseName, Color.Yellow);
+                                                        TShock.Log.ConsoleInfo("{0} has allowed {1} to house: \"{2}\".", ply.User.Name, playerID.Name, houseName);
+                                                    }
+                                                    else
+                                                        ply.SendErrorMessage("House " + houseName + " not found");
+                                                }
+                                                else
+                                                    ply.SendErrorMessage("Player " + playerName + " is already allowed to build in '" + house.Name + "'.");
+                                            }
+                                            else
+                                                ply.SendErrorMessage("Player " + playerName + " not found");
+                                        }
+                                        else
+                                            ply.SendErrorMessage("You do not own house: " + houseName);
+                                        break;
+                                    }
+                                case "del":
+                                    {
+                                        string playerName = args.Parameters[2];
+                                        User playerID;
+                                        var house = HouseTools.GetHouseByName(String.Join(" ", args.Parameters.GetRange(3, args.Parameters.Count - 3)));
+                                        if (house == null) { ply.SendErrorMessage("No such house!"); return; }
+                                        string houseName = house.Name;
+                                        if (HTools.OwnsHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
+                                        {
+                                            if ((playerID = TShock.Users.GetUserByName(playerName)) != null)
+                                            {
+                                                if (HouseTools.DeleteUser(houseName, playerID.ID.ToString()))
+                                                {
+                                                    ply.SendMessage("Deleted user " + playerName + " from " + houseName, Color.Yellow);
+                                                    TShock.Log.ConsoleInfo("{0} has disallowed {1} to house: \"{2}\".", ply.User.Name, playerID.Name, houseName);
+                                                }
+                                                else
+                                                    ply.SendErrorMessage("House " + houseName + " not found");
+                                            }
+                                            else
+                                                ply.SendErrorMessage("Player " + playerName + " not found");
+                                        }
+                                        else
+                                            ply.SendErrorMessage("You do not own house: " + houseName);
+                                        break;
+                                    }
+                            }
+
+                        }
 						else
-							ply.SendErrorMessage("Invalid syntax! Proper syntax: /house allow [name] [house]");
-						break;
-					}
-                #endregion
-                #region Disallow
-                case "disallow":
-					{
-						if (!ply.Group.HasPermission(UseHouse))
-						{
-							ply.SendErrorMessage("You do not have permission to use this command!");
-							return;
-						}
-						if ((!ply.IsLoggedIn || ply.User.ID == 0) && ply.RealPlayer)
-						{
-							ply.SendErrorMessage("You must log-in to use House Protection.");
-							return;
-						}
-						if (args.Parameters.Count > 2)
-						{
-							string playerName = args.Parameters[1];
-							User playerID;
-							var house = HouseTools.GetHouseByName(String.Join(" ", args.Parameters.GetRange(2, args.Parameters.Count - 2)));
-							if (house == null) { ply.SendErrorMessage("No such house!"); return; }
-							string houseName = house.Name;
-							if (HTools.OwnsHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
-							{
-								if ((playerID = TShock.Users.GetUserByName(playerName)) != null)
-								{
-									if (HouseTools.DeleteUser(houseName, playerID.ID.ToString()))
-									{
-										ply.SendMessage("Deleted user " + playerName + " from " + houseName, Color.Yellow);
-										TShock.Log.ConsoleInfo("{0} has disallowed {1} to house: \"{2}\".", ply.User.Name, playerID.Name, houseName);
-									}
-									else
-										ply.SendErrorMessage("House " + houseName + " not found");
-								}
-								else
-									ply.SendErrorMessage("Player " + playerName + " not found");
-							}
-							else
-								ply.SendErrorMessage("You do not own house: " + houseName);
-						}
-						else
-							ply.SendErrorMessage("Invalid syntax! Proper syntax: /house disallow [name] [house]");
+							ply.SendErrorMessage("Invalid syntax! Proper syntax: /house allow (add/del) [name] [house]");
 						break;
 					}
                 #endregion
@@ -375,11 +366,10 @@ namespace HousingDistricts
                                 ply.SendErrorMessage("The {0} does not exist!", args.Parameters[1]);
                                 return;
                             }
-                            ply.Teleport(house.HouseArea.Center.X, house.HouseArea.Center.Y);
+                            ply.Teleport(house.HouseArea.Center.X * 16, house.HouseArea.Center.Y * 16);
                             ply.SendInfoMessage("You have been teleported to {0}.", house.Name);
                             TShock.Log.Info("{0} teleported to a house: {1}.", ply.Name, house.Name);
                         }
-
                         break;
                     }
                 #endregion
@@ -722,8 +712,10 @@ namespace HousingDistricts
                                                     TShock.Log.Error(ex.ToString());
                                                 }
                                                 HousingDistricts.Houses.Remove(house);
-                                                ply.SendMessage("House: " + house.Name + " deleted.", Color.Yellow);
-                                                TShock.Log.Info("{0} deleted {1} House", ply.Name, house.Name);
+                                                ply.SendInfoMessage("House: {0} deleted by {1}.", house.Name, args.Player.User.Name);
+                                                TShock.Log.Info("{0} deleted {1} House.", ply.Name, house.Name);
+                                                H--;
+                                                h--;
                                             }
                                             else
                                             {
@@ -851,7 +843,7 @@ namespace HousingDistricts
                             }
                         }
                         else
-                            ply.SendErrorMessage("Invalid syntax! Proper syntax: /house resize [u/d/l/r] [amount]");
+                            ply.SendErrorMessage("Invalid syntax! Proper syntax: /house resize <u/d/l/r> <amount>");
                         break;
                     }
                 #endregion
@@ -996,7 +988,7 @@ namespace HousingDistricts
                                 }
                             }
                         }
-                        if (args.Parameters.Count > 3)
+                        else
                             ply.SendErrorMessage("Invalid syntax! Proper syntax: /house expired <days>");
                         break;
                     }
@@ -1036,14 +1028,6 @@ namespace HousingDistricts
 						}
 						else
 							ply.SendErrorMessage("You do not have access to that command.");
-						break;
-					}
-                #endregion
-                #region Reload Plugin
-                case "reload":
-					{
-						if (ply.Group.HasPermission("house.root")) 
-							HouseReload(args);
 						break;
 					}
                 #endregion
@@ -1091,12 +1075,12 @@ namespace HousingDistricts
 								ply.SendErrorMessage("You do not own " + house.Name + ".");
 						}
 						else
-							ply.SendErrorMessage("Invalid syntax! Use /house chat <housename> (on|off)");
+							ply.SendErrorMessage("Invalid syntax! Use /house chat <house> (on|off)");
 						break;
 					}
                 #endregion
-                #region Add Visitor
-                case "addvisitor":
+                #region Visitor
+                case "visitor":
 					{
 						if (!ply.Group.HasPermission(UseHouse))
 						{
@@ -1108,88 +1092,123 @@ namespace HousingDistricts
 							ply.SendErrorMessage("You must log-in to use House Protection.");
 							return;
 						}
-						if (args.Parameters.Count > 2)
+						if (args.Parameters.Count > 3)
 						{
-							string playerName = args.Parameters[1];
-							User playerID;
-							var house = HouseTools.GetHouseByName(args.Parameters[2]);
-							if (house == null) { ply.SendErrorMessage("No such house!"); return; }
-							string houseName = house.Name;
-							if (HTools.OwnsHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
-							{
-								if ((playerID = TShock.Users.GetUserByName(playerName)) != null)
-								{
-									if (!HTools.CanVisitHouse(playerID.ID.ToString(), house))
-									{
-										if (HouseTools.AddNewVisitor(house, playerID.ID.ToString()))
-											ply.SendMessage("Added user " + playerName + " to " + houseName + " as a visitor.", Color.Yellow);
-										else
-											ply.SendErrorMessage("House " + houseName + " not found");
-									}
-									else
-										ply.SendErrorMessage("Player " + playerName + " is already allowed to visit '" + house.Name + "'.");
-								}
-								else
-									ply.SendErrorMessage("Player " + playerName + " not found");
-							}
-							else
-								ply.SendErrorMessage("You do not own house: " + houseName);
+                            switch (args.Parameters[1])
+                            {
+                                case "add":
+                                    {
+                                        string playerName = args.Parameters[2];
+                                        User playerID;
+                                        var house = HouseTools.GetHouseByName(args.Parameters[3]);
+                                        if (house == null)
+                                        {
+                                            ply.SendErrorMessage("No such house!");
+                                            return;
+                                        }
+                                        string houseName = house.Name;
+                                        if (HTools.OwnsHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
+                                        {
+                                            if ((playerID = TShock.Users.GetUserByName(playerName)) != null)
+                                            {
+                                                if (!HTools.CanVisitHouse(playerID.ID.ToString(), house))
+                                                {
+                                                    if (HouseTools.AddNewVisitor(house, playerID.ID.ToString()))
+                                                        ply.SendMessage("Added user " + playerName + " to " + houseName + " as a visitor.", Color.Yellow);
+                                                    else
+                                                        ply.SendErrorMessage("House " + houseName + " not found");
+                                                }
+                                                else
+                                                    ply.SendErrorMessage("Player " + playerName + " is already allowed to visit '" + house.Name + "'.");
+                                            }
+                                            else
+                                                ply.SendErrorMessage("Player " + playerName + " not found");
+                                        }
+                                        else
+                                            ply.SendErrorMessage("You do not own house: " + houseName);
+                                        break;
+                                    }
+                                case "del":
+                                    {
+                                        string playerName = args.Parameters[2];
+                                        User playerID;
+                                        var house = HouseTools.GetHouseByName(args.Parameters[3]);
+                                        if (house == null) { ply.SendErrorMessage("No such house!"); return; }
+                                        string houseName = house.Name;
+                                        if (HTools.OwnsHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
+                                        {
+                                            if ((playerID = TShock.Users.GetUserByName(playerName)) != null)
+                                            {
+                                                if (HouseTools.DeleteVisitor(house, playerID.ID.ToString()))
+                                                    ply.SendMessage("Added user " + playerName + " to " + houseName + " as a visitor.", Color.Yellow);
+                                                else
+                                                    ply.SendErrorMessage("House " + houseName + " not found");
+                                            }
+                                            else
+                                                ply.SendErrorMessage("Player " + playerName + " not found");
+                                        }
+                                        else
+                                            ply.SendErrorMessage("You do not own house: " + houseName);
+                                        break;
+                                    }
+                            }
 						}
 						else
-							ply.SendErrorMessage("Invalid syntax! Proper syntax: /house addvisitor [name] [house]");
+							ply.SendErrorMessage("Invalid syntax! Proper syntax: /house visitor (add/del) [name] [house]");
 						break;
 					}
                 #endregion
-                #region Delete Visitor
-                case "delvisitor":
-					{
-						if (!ply.Group.HasPermission(UseHouse))
-						{
-							ply.SendErrorMessage("You do not have permission to use this command!");
-							return;
-						}
-						if ((!ply.IsLoggedIn || ply.User.ID == 0) && ply.RealPlayer)
-						{
-							ply.SendErrorMessage("You must log-in to use House Protection.");
-							return;
-						}
-						if (args.Parameters.Count > 2)
-						{
-							string playerName = args.Parameters[1];
-							User playerID;
-							var house = HouseTools.GetHouseByName(args.Parameters[2]);
-							if (house == null) { ply.SendErrorMessage("No such house!"); return; }
-							string houseName = house.Name;
-							if (HTools.OwnsHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
-							{
-								if ((playerID = TShock.Users.GetUserByName(playerName)) != null)
-								{
-									if (HouseTools.DeleteVisitor(house, playerID.ID.ToString()))
-										ply.SendMessage("Added user " + playerName + " to " + houseName + " as a visitor.", Color.Yellow);
-									else
-										ply.SendErrorMessage("House " + houseName + " not found");
-								}
-								else
-									ply.SendErrorMessage("Player " + playerName + " not found");
-							}
-							else
-								ply.SendErrorMessage("You do not own house: " + houseName);
-						}
-						else
-							ply.SendErrorMessage("Invalid syntax! Proper syntax: /house delvisitor [name] [house]");
-						break;
-					}
+                #region Reload Plugin
+                case "reload":
+                    {
+                        if (ply.Group.HasPermission("house.root"))
+                            HouseReload(args);
+                        break;
+                    }
                 #endregion
+                case "help":
                 default:
 					{
-						ply.SendMessage("To create a house, use these commands:", Color.Lime);
-						ply.SendMessage("/house set 1", Color.Lime);
-						ply.SendMessage("/house set 2", Color.Lime);
-						ply.SendMessage("/house define <name>", Color.Lime);
-						ply.SendMessage("Other /house commands: list, allow, disallow, define, redefine, tp, delete, resize, purge, purgeexp, expired, clear, info, chat, addvisitor, delvisitor, lock, reload", Color.Lime);
+                        int pageNumber;
+                        int pageParamIndex = 0;
+                        if (args.Parameters.Count > 1)
+                            pageParamIndex = 1;
+                        if (!PaginationTools.TryParsePageNumber(args.Parameters, pageParamIndex, args.Player, out pageNumber))
+                            return;
+
+                        List<string> lines = new List<string> {
+                          "set <1/2> - Sets the temporary house points.",
+                          "define <name> - Defines the house with the current temporary points.",
+                          "redefine <name> - Defines the house with the given name.",
+                          "delete <name> - Deletes the given house.",
+                          "allow (add/del) <name> <house> - Add/Delete a player to the house.",
+                          "tp <house> - Teleports the player to a house.",
+                          "delete [house] - Delete a house from record.",
+                          "purge [house] - Purge a house from the world and record.",
+                          "purgeexp <days> - Purge all houses inactive for set days.",
+                          "clear - Clear the temporary house points.",
+                          "list - List all houses on record.",
+                          "resize <u/d/l/r> <amount> - Resize the selection of temporary points.",
+                          "info <house> - Get information about the house.",
+                          "expired <days> - Check for expired houses for set days.",
+                          "lock <house> - Lock the house from entry.",
+                          "chat <house> (on/off) - Enable/Disable house chat.",
+                          "visitor (add/del) <name> <house> - Add/Delete a visitor from the house.",
+                        };
+                        if (args.Player.Group.HasPermission(TeleportHouse))
+                            lines.Add("tp <house> - Teleports you to the given house's center.");
+
+                        PaginationTools.SendPage(
+                          args.Player, pageNumber, lines,
+                          new PaginationTools.Settings
+                          {
+                              HeaderFormat = "Available House Sub-Commands ({0}/{1}):",
+                              FooterFormat = "Type {0}house {{0}} for more sub-commands.".SFormat(Commands.Specifier)
+                          }
+                        );
 						break;
 					}
-			}
+            }
 		}
 
 		public static void TellAll(CommandArgs args)
