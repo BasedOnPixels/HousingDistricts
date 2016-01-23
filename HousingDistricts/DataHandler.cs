@@ -26,6 +26,7 @@ namespace HousingDistricts
             Data = data;
         }
     }
+
     public static class GetDataHandlers
     {
         static string EditHouse = "house.edit";
@@ -311,7 +312,6 @@ namespace HousingDistricts
             }
             return false;
         }
-
 
         private static bool HandleChest(GetDataHandlerArgs args)
         {
