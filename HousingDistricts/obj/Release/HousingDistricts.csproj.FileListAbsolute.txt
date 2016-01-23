@@ -1,4 +1,3 @@
-C:\Users\Marcus101RR\Desktop\TShock\HousingDistricts\HousingDistricts\obj\Release\HousingDistricts.csprojResolveAssemblyReference.cache
 C:\Users\Marcus101RR\Desktop\TShock\HousingDistricts\HousingDistricts\bin\Release\HousingDistricts.dll
 C:\Users\Marcus101RR\Desktop\TShock\HousingDistricts\HousingDistricts\bin\Release\HousingDistricts.pdb
 C:\Users\Marcus101RR\Desktop\TShock\HousingDistricts\HousingDistricts\obj\Release\HousingDistricts.dll
