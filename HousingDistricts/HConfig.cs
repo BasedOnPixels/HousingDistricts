@@ -42,6 +42,8 @@ namespace HousingDistricts
 		public string OverlapHouses_description = "Can players create houses that overlap another players' house?";
 		public bool AllowRod = true;
 		public string AllowRod_description = "Can players use RoD to teleport into houses?";
+        public bool ProtectContents = true;
+        public string ProtectContents_description = "Protect Chests and Signs in houses?";
         public int MaxChests = 2;
         public string MaxChests_description = "The maximum chests allowed in a house.";
 
