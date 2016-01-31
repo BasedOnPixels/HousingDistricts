@@ -292,19 +292,22 @@ namespace HousingDistricts
 
             if (!args.Player.Group.HasPermission(EditHouse))
             {
-                lock (HousingDistricts.HPlayers)
+                if (HousingDistricts.HConfig.ProtectContents)
                 {
-                    var I = HousingDistricts.Houses.Count;
-                    for (int i = 0; i < I; i++)
+                    lock (HousingDistricts.HPlayers)
                     {
-                        if (HousingDistricts.Timeout(Start)) return false;
-                        var house = HousingDistricts.Houses[i];
-                        if (house != null && house.HouseArea.Intersects(new Rectangle(tilex, tiley, 1, 1)) && !HouseTools.WorldMismatch(house))
+                        var I = HousingDistricts.Houses.Count;
+                        for (int i = 0; i < I; i++)
                         {
-                            if (!HTools.OwnsHouse(args.Player.User.ID.ToString(), house.Name))
+                            if (HousingDistricts.Timeout(Start)) return false;
+                            var house = HousingDistricts.Houses[i];
+                            if (house != null && house.HouseArea.Intersects(new Rectangle(tilex, tiley, 1, 1)) && !HouseTools.WorldMismatch(house))
                             {
-                                args.Player.SendMessage("Protected Chest", Color.Yellow);
-                                return true;
+                                if (!HTools.OwnsHouse(args.Player.User.ID.ToString(), house.Name))
+                                {
+                                    args.Player.SendErrorMessage("This chest is protected.");
+                                    return true;
+                                }
                             }
                         }
                     }
@@ -417,19 +420,22 @@ namespace HousingDistricts
 
             if (!args.Player.Group.HasPermission(EditHouse))
             {
-                lock (HousingDistricts.HPlayers)
+                if (HousingDistricts.HConfig.ProtectContents)
                 {
-                    var I = HousingDistricts.Houses.Count;
-                    for (int i = 0; i < I; i++)
+                    lock (HousingDistricts.HPlayers)
                     {
-                        if (HousingDistricts.Timeout(Start)) return false;
-                        var house = HousingDistricts.Houses[i];
-                        if (house != null && house.HouseArea.Intersects(new Rectangle(tilex, tiley, 1, 1)) && !HouseTools.WorldMismatch(house))
+                        var I = HousingDistricts.Houses.Count;
+                        for (int i = 0; i < I; i++)
                         {
-                            if (!HTools.OwnsHouse(args.Player.User.ID.ToString(), house.Name))
+                            if (HousingDistricts.Timeout(Start)) return false;
+                            var house = HousingDistricts.Houses[i];
+                            if (house != null && house.HouseArea.Intersects(new Rectangle(tilex, tiley, 1, 1)) && !HouseTools.WorldMismatch(house))
                             {
-                                args.Player.SendMessage("Protected Sign", Color.Yellow);
-                                return true;
+                                if (!HTools.OwnsHouse(args.Player.User.ID.ToString(), house.Name))
+                                {
+                                    args.Player.SendErrorMessage("This sign is protected");
+                                    return true;
+                                }
                             }
                         }
                     }
