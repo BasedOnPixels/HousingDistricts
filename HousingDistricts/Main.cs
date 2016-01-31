@@ -386,12 +386,12 @@ namespace HousingDistricts
 			}
 		}
 
-		public static bool Timeout(DateTime Start, int ms = 600, bool warn = true)
+		public static bool Timeout(DateTime Start, int ms = 800, bool warn = true)
 		{
 			bool ret = (DateTime.Now - Start).TotalMilliseconds >= ms;
 			if (ms == UpdateTimeout && ret) ULock = false;
 			if (warn && ret) 
-				TShock.Log.ConsoleInfo("Hook timeout detected in HousingDistricts. You might want to report this.");
+				TShock.Log.ConsoleInfo("Hook timeout detected in HousingDistricts. Your server can't keep up with requests.");
 
 			return ret;
 		}
