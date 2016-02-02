@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Timers;
 using Terraria;
@@ -6,8 +8,6 @@ using TerrariaApi.Server;
 using MySql.Data.MySqlClient;
 using TShockAPI;
 using TShockAPI.DB;
-using System.IO;
-using System.Reflection;
 
 namespace HousingDistricts
 {
