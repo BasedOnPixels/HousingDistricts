@@ -453,7 +453,7 @@ namespace HousingDistricts
                             }
                             else
                             {
-                                ply.SendErrorMessage("You do not own house: " + houseName);
+                                ply.SendErrorMessage("You are not the owner of {0}", house.Name);
                                 break;
                             }
                         }
