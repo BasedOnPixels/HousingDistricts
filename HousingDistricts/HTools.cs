@@ -79,9 +79,12 @@ namespace HousingDistricts
 
 		public static bool OwnsHouse(string UserID, string housename)
 		{
-			if (String.IsNullOrWhiteSpace(UserID) || UserID == "0" || String.IsNullOrEmpty(housename)) return false;
+			if (String.IsNullOrWhiteSpace(UserID) || UserID == "0" || String.IsNullOrEmpty(housename))
+                return false;
+
 			House H = HouseTools.GetHouseByName(housename);
-			if (H == null) return false;
+			if (H == null)
+                return false;
 			return OwnsHouse(UserID, H);
 		}
 
@@ -94,7 +97,7 @@ namespace HousingDistricts
 			{
 				try
 				{
-					if (house.Owners[0] == UserID || isAdmin)
+					if (house.Owners.Contains(UserID) || isAdmin)
                         return true;
 					else
                         return false;
@@ -108,7 +111,40 @@ namespace HousingDistricts
 			return false;
 		}
 
-		public static bool CanVisitHouse(string UserID, House house)
+        public static bool IsOwnerHouse(string UserID, string houseName)
+        {
+            House house = HouseTools.GetHouseByName(houseName);
+            if (house == null)
+                return false;
+
+            bool isAdmin = false;
+            try
+            {
+                isAdmin = TShock.Groups.GetGroupByName(TShock.Users.GetUserByID(Convert.ToInt32(UserID)).Group).HasPermission("house.root");
+            }
+            catch
+            {
+                TShock.Log.Error("Unable to find the House Root Permission.");
+            }
+            if (!String.IsNullOrEmpty(UserID) && UserID != "0" && house != null)
+            {
+                try
+                {
+                    if (house.Owners[0] == UserID || isAdmin)
+                        return true;
+                    else
+                        return false;
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        public static bool CanVisitHouse(string UserID, House house)
 		{
 			return (!String.IsNullOrEmpty(UserID) && UserID != "0") && (house.Visitors.Contains(UserID) || house.Owners.Contains(UserID)); 
 		}

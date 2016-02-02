@@ -397,7 +397,7 @@ namespace HousingDistricts
                                 {
                                     if (house.HouseArea.Intersects(new Rectangle(ply.TileX, ply.TileY, 1, 1)) && !HouseTools.WorldMismatch(house))
                                     {
-                                        if (HTools.OwnsHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
+                                        if (HTools.IsOwnerHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
                                         {
                                             try
                                             {
@@ -414,7 +414,7 @@ namespace HousingDistricts
                                         }
                                         else
                                         {
-                                            ply.SendErrorMessage("You do not own house: " + house.Name);
+                                            ply.SendErrorMessage("You are not the owner of {0}", house.Name);
                                             break;
                                         }
                                     }
@@ -436,7 +436,7 @@ namespace HousingDistricts
                                 return;
                             }
 
-                            if (HTools.OwnsHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
+                            if (HTools.IsOwnerHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
                             {
                                 try
                                 {
