@@ -94,8 +94,10 @@ namespace HousingDistricts
 			{
 				try
 				{
-					if (house.Owners.Contains(UserID) || isAdmin) return true;
-					else return false;
+					if (house.Owners[0] == UserID || isAdmin)
+                        return true;
+					else
+                        return false;
 				}
 				catch (Exception ex)
 				{
