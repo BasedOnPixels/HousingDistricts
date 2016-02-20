@@ -38,14 +38,14 @@ namespace HousingDistricts
 			get { return Assembly.GetExecutingAssembly().GetName().Version; }
 		}
 
-		public static bool ULock = false;
-		public const int UpdateTimeout = 500;
+        public static bool ULock = false;
+		public const int UpdateTimeout = 1000;
 
-		// Note: Do NOT replace for, its faster for Lists than Foreach (or Linq, huh). Yes, there are studies proving that. No, there is no such difference for arrays.
+        // Note: Do NOT replace for, its faster for Lists than Foreach (or Linq, huh). Yes, there are studies proving that. No, there is no such difference for arrays.
 
-		static readonly System.Timers.Timer Update = new System.Timers.Timer(500);
+        static readonly Timer HouseTimer = new Timer(1000);
 
-		public override void Initialize()
+        public override void Initialize()
 		{
 			HTools.SetupConfig();
 
@@ -55,9 +55,7 @@ namespace HousingDistricts
 			ServerApi.Hooks.ServerLeave.Register(this, OnLeave, 5);
 			ServerApi.Hooks.NetGetData.Register(this, GetData, 10);
 			GetDataHandlers.InitGetDataHandler();
-			Update.Elapsed += OnUpdate;
-			Update.Start();
-		}
+        }
 
 		protected override void Dispose(bool disposing)
 		{
@@ -68,9 +66,9 @@ namespace HousingDistricts
 				ServerApi.Hooks.NetGreetPlayer.Deregister(this, OnGreetPlayer);
 				ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave);
 				ServerApi.Hooks.NetGetData.Deregister(this, GetData);
-				Update.Elapsed -= OnUpdate;
-				Update.Stop();
-			}
+                HouseTimer.Elapsed -= OnHouseCheck;
+                HouseTimer.Stop();
+            }
 
 			base.Dispose(disposing);
 		}
@@ -159,10 +157,13 @@ namespace HousingDistricts
 			Commands.ChatCommands.Add(new Command("tshock.canchat", HCommands.TellAll, "all"));
 			Commands.ChatCommands.Add(new Command("house.root", HCommands.HouseReload, "housereload"));
 			Commands.ChatCommands.Add(new Command("house.root", HCommands.HouseWipe, "housewipe"));
-			#endregion
-		}
+            #endregion
 
-		public void OnUpdate(object sender, ElapsedEventArgs e)
+            HouseTimer.Elapsed += OnHouseCheck;
+            HouseTimer.Start();
+        }
+
+		public void OnHouseCheck(object sender, ElapsedEventArgs e)
 		{
 			if (Main.worldID == 0) return;
 			if (ULock) return;
