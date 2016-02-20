@@ -386,80 +386,63 @@ namespace HousingDistricts
 							ply.SendErrorMessage("You must log-in to use House Protection.");
 							return;
 						}
-                        if (args.Parameters.Count == 1)
+                        if (args.Parameters.Count > 2)
                         {
-                            ply.SendMessage("Checking for Houses...", Color.Yellow);
-                            var J = HousingDistricts.Houses.Count;
-                            for (int j = 0; j < J; j++)
+                            ply.SendErrorMessage("Invalid syntax! Proper syntax: /house delete [house]");
+                            return;
+                        }
+                        if (args.Parameters.Count > 0)
+                        {
+                            House house = null;
+                            if (args.Parameters.Count == 1)
                             {
-                                var house = HousingDistricts.Houses[j];
-                                try
+                                bool houseFound = false;
+                                var J = HousingDistricts.Houses.Count;
+                                for (int j = 0; j < J; j++)
                                 {
+                                    house = HousingDistricts.Houses[j];
                                     if (house.HouseArea.Intersects(new Rectangle(ply.TileX, ply.TileY, 1, 1)) && !HouseTools.WorldMismatch(house))
                                     {
-                                        if (HTools.IsOwnerHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
-                                        {
-                                            try
-                                            {
-                                                TShock.DB.Query("DELETE FROM HousingDistrict WHERE Name=@0", house.Name);
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                TShock.Log.Error(ex.ToString());
-                                            }
-                                            HousingDistricts.Houses.Remove(house);
-                                            ply.SendMessage("House: " + house.Name + " deleted", Color.Yellow);
-                                            TShock.Log.Info("{0} deleted {1} House", ply.Name, house.Name);
-                                            break;
-                                        }
-                                        else
-                                        {
-                                            ply.SendErrorMessage("You are not the owner of {0}", house.Name);
-                                            break;
-                                        }
+                                        houseFound = true;
+                                        break;
                                     }
                                 }
-                                catch (Exception ex)
+                                if(!houseFound)
                                 {
-                                    TShock.Log.Error(ex.ToString());
-                                    continue;
+                                    ply.SendErrorMessage("There is no house in your current position.");
+                                    return;
+                                }                                        
+                            }
+                            else if (args.Parameters.Count == 2)
+                            {
+                                string houseName = String.Join(" ", args.Parameters.GetRange(1, args.Parameters.Count - 1));
+                                house = HouseTools.GetHouseByName(houseName);
+                                if (house == null)
+                                {
+                                    ply.SendErrorMessage("This house doesn't exist!");
+                                    return;
                                 }
                             }
-                        }
-                        if (args.Parameters.Count == 2)
-                        {
-                            string houseName = String.Join(" ", args.Parameters.GetRange(1, args.Parameters.Count - 1));
-                            var house = HouseTools.GetHouseByName(houseName);
-                            if (house == null)
-                            {
-                                ply.SendErrorMessage("No such house!");
-                                return;
-                            }
-
                             if (HTools.IsOwnerHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
                             {
                                 try
                                 {
-                                    TShock.DB.Query("DELETE FROM HousingDistrict WHERE Name=@0", houseName);
+                                    TShock.DB.Query("DELETE FROM HousingDistrict WHERE Name=@0", house.Name);
                                 }
                                 catch (Exception ex)
                                 {
                                     TShock.Log.Error(ex.ToString());
                                 }
                                 HousingDistricts.Houses.Remove(house);
-                                ply.SendMessage("House: " + houseName + " deleted", Color.Yellow);
-                                TShock.Log.ConsoleInfo("{0} has deleted house: \"{1}\".", ply.User.Name, houseName);
+                                ply.SendInfoMessage("You deleted {0}.", house.Name);
+                                TShock.Log.ConsoleInfo("{0} has deleted house: {1}.", ply.User.Name, house.Name);
                                 break;
                             }
                             else
                             {
-                                ply.SendErrorMessage("You are not the owner of {0}", house.Name);
+                                ply.SendErrorMessage("You are not the owner of {0}.", house.Name);
                                 break;
                             }
-                        }
-                        else if (args.Parameters.Count > 3)
-                        {
-                            ply.SendErrorMessage("Invalid syntax! Proper syntax: /house delete [house]");
                         }
                         break;
                     }
@@ -477,107 +460,57 @@ namespace HousingDistricts
                             ply.SendErrorMessage("You must log-in to use House Protection.");
                             return;
                         }
-                        if (args.Parameters.Count == 1)
+                        if (args.Parameters.Count > 2)
                         {
-                            ply.SendMessage("Checking for Houses...", Color.Yellow);
-                            var H = HousingDistricts.Houses.Count;
-                            for (int h = 0; h < H; h++)
+                            ply.SendErrorMessage("Invalid syntax! Proper syntax: /house purge [house]");
+                            return;
+                        }
+                        if (args.Parameters.Count > 0)
+                        {
+                            House house = null;
+                            if (args.Parameters.Count == 1)
                             {
-                                var house = HousingDistricts.Houses[h];
-                                try
+                                bool houseFound = false;
+                                var H = HousingDistricts.Houses.Count;
+                                for (int h = 0; h < H; h++)
                                 {
+                                    house = HousingDistricts.Houses[h];
                                     if (house.HouseArea.Intersects(new Rectangle(ply.TileX, ply.TileY, 1, 1)) && !HouseTools.WorldMismatch(house))
                                     {
-                                        if (HTools.OwnsHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
-                                        {
-                                            int x = 0, y = 0, x2 = 0, y2 = 0, bottomx = 0, bottomy = 0;
-                                            var reader = TShock.DB.QueryReader("SELECT * FROM HousingDistrict WHERE Name=@0", house.Name);
-                                            if (reader.Read())
-                                            {
-                                                x = reader.Get<int>("TopX");
-                                                y = reader.Get<int>("TopY");
-                                                bottomx = reader.Get<int>("BottomX");
-                                                bottomy = reader.Get<int>("BottomY");
-                                                ply.SendMessage("Location: " + x + " X " + y + " Y " + bottomx + " X " + bottomy + " Y ", Color.Yellow);
-                                            }
-                                            x2 = x + bottomx - 1;
-                                            y2 = y + bottomy - 1;
-                                            ply.SendMessage("Location: " + x2 + " X2 " + y2 + " Y2 ", Color.Yellow);
-                                            for (int i = x; i <= x2; i++)
-                                            {
-                                                for (int j = y; j <= y2; j++)
-                                                {
-                                                    var tile = Main.tile[i, j];
-                                                    tile.wall = 0;
-                                                    tile.active(false);
-                                                    tile.frameX = -1;
-                                                    tile.frameY = -1;
-                                                    tile.liquidType(0);
-                                                    tile.liquid = 0;
-                                                    tile.type = 0;
-                                                }
-                                            }
-                                            int lowX = Netplay.GetSectionX(x);
-                                            int highX = Netplay.GetSectionX(x2);
-                                            int lowY = Netplay.GetSectionY(y);
-                                            int highY = Netplay.GetSectionY(y2);
-                                            foreach (RemoteClient sock in Netplay.Clients.Where(s => s.IsActive))
-                                            {
-                                                for (int i = lowX; i <= highX; i++)
-                                                {
-                                                    for (int j = lowY; j <= highY; j++)
-                                                        sock.TileSections[i, j] = false;
-                                                }
-                                            }
-
-                                            reader.Dispose();
-                                            try
-                                            {
-                                                TShock.DB.Query("DELETE FROM HousingDistrict WHERE Name=@0", house.Name);
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                TShock.Log.Error(ex.ToString());
-                                            }
-                                            HousingDistricts.Houses.Remove(house);
-                                            ply.SendMessage("House: " + house.Name + " deleted", Color.Yellow);
-                                            TShock.Log.Info("{0} deleted {1} House", ply.Name, house.Name);
-                                            break;
-                                        }
-                                        else
-                                        {
-                                            ply.SendErrorMessage("You do not own house: " + house.Name);
-                                            break;
-                                        }
-                                    }
+                                        houseFound = true;
+                                        break;
+                                    }  
                                 }
-                                catch (Exception ex)
+                                if (!houseFound)
                                 {
-                                    TShock.Log.Error(ex.ToString());
-                                    continue;
+                                    args.Player.SendErrorMessage("There is no house in your current position.");
+                                    return;
                                 }
                             }
-                        }
-                        if (args.Parameters.Count == 2)
-                        {
-                            string houseName = String.Join(" ", args.Parameters.GetRange(1, args.Parameters.Count - 1));
-                            var house = HouseTools.GetHouseByName(houseName);
-                            if (house == null) { ply.SendErrorMessage("No such house!"); return; }
-                            if (HTools.OwnsHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
+                            if (args.Parameters.Count == 2)
+                            {
+                                string houseName = String.Join(" ", args.Parameters.GetRange(1, args.Parameters.Count - 1));
+                                house = HouseTools.GetHouseByName(houseName);
+                                if (house == null)
+                                {
+                                    ply.SendErrorMessage("This house doesn't exist!");
+                                    return;
+                                }
+                            }
+                            if (HTools.IsOwnerHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
                             {
                                 int x = 0, y = 0, x2 = 0, y2 = 0, bottomx = 0, bottomy = 0;
-                                var reader = TShock.DB.QueryReader("SELECT * FROM HousingDistrict WHERE Name=@0", houseName);
+                                var reader = TShock.DB.QueryReader("SELECT * FROM HousingDistrict WHERE Name=@0", house.Name);
                                 if (reader.Read())
                                 {
                                     x = reader.Get<int>("TopX");
                                     y = reader.Get<int>("TopY");
                                     bottomx = reader.Get<int>("BottomX");
                                     bottomy = reader.Get<int>("BottomY");
-                                    ply.SendMessage("Location: " + x + " X " + y + " Y " + bottomx + " X " + bottomy + " Y ", Color.Yellow);
                                 }
                                 x2 = x + bottomx - 1;
                                 y2 = y + bottomy - 1;
-                                ply.SendMessage("Location: " + x2 + " X2 " + y2 + " Y2 ", Color.Yellow);
+                                ply.SendInfoMessage("Location: ({0}, {1}) {2}x{3}", x, y, bottomx, bottomy);
                                 for (int i = x; i <= x2; i++)
                                 {
                                     for (int j = y; j <= y2; j++)
@@ -607,26 +540,22 @@ namespace HousingDistricts
                                 reader.Dispose();
                                 try
                                 {
-                                    TShock.DB.Query("DELETE FROM HousingDistrict WHERE Name=@0", houseName);
+                                    TShock.DB.Query("DELETE FROM HousingDistrict WHERE Name=@0", house.Name);
                                 }
                                 catch (Exception ex)
                                 {
                                     TShock.Log.Error(ex.ToString());
                                 }
                                 HousingDistricts.Houses.Remove(house);
-                                ply.SendMessage("House: " + houseName + " deleted", Color.Yellow);
-                                TShock.Log.Info("{0} deleted {1} House", ply.Name, house.Name);
+                                ply.SendInfoMessage("You deleted {0}.", house.Name);
+                                TShock.Log.Info("{0} deleted purged house: {1}", ply.Name, house.Name);
                                 break;
                             }
                             else
                             {
-                                ply.SendErrorMessage("You do not own house: " + houseName);
+                                ply.SendErrorMessage("You are not the owner of {0}.", house.Name);
                                 break;
                             }
-                        }
-                        else if (args.Parameters.Count > 3)
-                        {
-                            ply.SendErrorMessage("Invalid syntax! Proper syntax: /house purge [house]");
                         }
                         break;
                     }
@@ -661,7 +590,7 @@ namespace HousingDistricts
                                         TimeSpan t = DateTime.UtcNow.Subtract(DateTime.Parse(DbUser.LastAccessed));
                                         if (!HouseTools.WorldMismatch(house) && t.Days >= System.Convert.ToInt32(days))
                                         {
-                                            if (HTools.OwnsHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
+                                            if (HTools.IsOwnerHouse(ply.User.ID.ToString(), house.Name) || ply.Group.HasPermission(AdminHouse))
                                             {
                                                 int x = 0, y = 0, x2 = 0, y2 = 0, bottomx = 0, bottomy = 0;
                                                 var reader = TShock.DB.QueryReader("SELECT * FROM HousingDistrict WHERE Name=@0", house.Name);
@@ -855,83 +784,74 @@ namespace HousingDistricts
 							ply.SendErrorMessage("You do not have permission to use this command!");
 							return;
 						}
-                        if (args.Parameters.Count > 1)
+                        if (args.Parameters.Count > 2)
                         {
-                            var house = HouseTools.GetHouseByName(args.Parameters[1]);
-                            if (house == null)
-                            {
-                                ply.SendErrorMessage("No such house!");
-                                return;
-                            }
-                            string OwnerNames = "";
-                            string VisitorNames = "";
-                            for (int i = 0; i < house.Owners.Count; i++)
-                            {
-                                var ID = house.Owners[i];
-                                try { OwnerNames += (String.IsNullOrEmpty(OwnerNames) ? "" : ", ") + TShock.Users.GetUserByID(System.Convert.ToInt32(ID)).Name; }
-                                catch { }
-                            }
-                            for (int i = 0; i < house.Visitors.Count; i++)
-                            {
-                                var ID = house.Visitors[i];
-                                try { VisitorNames += (String.IsNullOrEmpty(VisitorNames) ? "" : ", ") + TShock.Users.GetUserByID(System.Convert.ToInt32(ID)).Name; }
-                                catch { }
-                            }
-                            var UserID = house.Owners[0];
-                            TShockAPI.DB.User DbUser = new UserManager(TShock.DB).GetUserByID(System.Convert.ToInt32(UserID));
-                            TimeSpan t = DateTime.UtcNow.Subtract(DateTime.Parse(DbUser.LastAccessed));
-                            ply.SendMessage("House '" + house.Name + "':", Color.LawnGreen);
-                            ply.SendMessage("Chat enabled: " + (house.ChatEnabled == 1 ? "yes" : "no"), Color.LawnGreen);
-                            ply.SendMessage("Locked: " + (house.Locked == 1 ? "yes" : "no"), Color.LawnGreen);
-                            ply.SendMessage("Owners: " + OwnerNames, Color.LawnGreen);
-                            ply.SendMessage("Visitors: " + VisitorNames, Color.LawnGreen);
-                            ply.SendMessage("World Mismatch: " + HouseTools.WorldMismatch(house).ToString(), Color.LawnGreen);
-                            ply.SendMessage("Last Accessed: " + t.Days + "D, " + t.Hours + "H, " + t.Minutes + "M", Color.LawnGreen);
-                            TShock.Log.Info("{0} used House Info: {1}", ply.Name, house.Name);
+                            ply.SendErrorMessage("Invalid syntax! Proper syntax: /house info [house]");
+                            return;
                         }
-                        else if (args.Parameters.Count == 1)
+                        if (args.Parameters.Count > 0)
                         {
-                            ply.SendMessage("Checking for House...", Color.Yellow);
-                            var J = HousingDistricts.Houses.Count;
-                            for (int j = 0; j < J; j++)
+                            House house = null;
+                            if (args.Parameters.Count == 1)
                             {
-                                var house = HousingDistricts.Houses[j];
-                                try
+                                bool houseFound = false;
+                                var H = HousingDistricts.Houses.Count;
+                                for (int h = 0; h < H; h++)
                                 {
+                                    house = HousingDistricts.Houses[h];
                                     if (house.HouseArea.Intersects(new Rectangle(ply.TileX, ply.TileY, 1, 1)) && !HouseTools.WorldMismatch(house))
                                     {
-                                        string OwnerNames = "";
-                                        string VisitorNames = "";
-                                        for (int i = 0; i < house.Owners.Count; i++)
-                                        {
-                                            var ID = house.Owners[i];
-                                            try { OwnerNames += (String.IsNullOrEmpty(OwnerNames) ? "" : ", ") + TShock.Users.GetUserByID(System.Convert.ToInt32(ID)).Name; }
-                                            catch { }
-                                        }
-                                        for (int i = 0; i < house.Visitors.Count; i++)
-                                        {
-                                            var ID = house.Visitors[i];
-                                            try { VisitorNames += (String.IsNullOrEmpty(VisitorNames) ? "" : ", ") + TShock.Users.GetUserByID(System.Convert.ToInt32(ID)).Name; }
-                                            catch { }
-                                        }
-                                        var UserID = house.Owners[0];
-                                        TShockAPI.DB.User DbUser = new UserManager(TShock.DB).GetUserByID(System.Convert.ToInt32(UserID));
-                                        TimeSpan t = DateTime.UtcNow.Subtract(DateTime.Parse(DbUser.LastAccessed));
-                                        ply.SendMessage("House '" + house.Name + "':", Color.LawnGreen);
-                                        ply.SendMessage("Chat enabled: " + (house.ChatEnabled == 1 ? "yes" : "no"), Color.LawnGreen);
-                                        ply.SendMessage("Locked: " + (house.Locked == 1 ? "yes" : "no"), Color.LawnGreen);
-                                        ply.SendMessage("Owners: " + OwnerNames, Color.LawnGreen);
-                                        ply.SendMessage("Visitors: " + VisitorNames, Color.LawnGreen);
-                                        ply.SendMessage("World Mismatch: " + HouseTools.WorldMismatch(house).ToString(), Color.LawnGreen);
-                                        ply.SendMessage("Last Accessed: " + t.Days + "D, " + t.Hours + "H, " + t.Minutes + "M", Color.LawnGreen);
-                                        TShock.Log.Info("{0} used House Info: {1}", ply.Name, house.Name);
+                                        houseFound = true;
+                                        break;
                                     }
                                 }
-                                catch (Exception ex)
+                                if(!houseFound)
                                 {
-                                    TShock.Log.Error(ex.ToString());
-                                    continue;
+                                    ply.SendErrorMessage("There is no house in your current position.");
+                                    return;
                                 }
+                            }
+                            if (args.Parameters.Count == 2)
+                            {
+                                house = HouseTools.GetHouseByName(args.Parameters[1]);
+                                if (house == null)
+                                {
+                                    ply.SendErrorMessage("This house doesn't exist!");
+                                    return;
+                                }
+                            }
+                            try
+                            {
+                                List<string> OwnersName = new List<string>();
+                                List<string> VisitorsName = new List<string>();
+                                for (int i = 0; i < house.Owners.Count; i++)
+                                {
+                                    try
+                                    {
+                                        OwnersName.Add(TShock.Users.GetUserByID(Convert.ToInt32(house.Owners[i])).Name);
+                                    }
+                                    catch { }
+                                }
+                                for (int i = 0; i < house.Visitors.Count; i++)
+                                {
+                                    try
+                                    {
+                                        VisitorsName.Add(TShock.Users.GetUserByID(Convert.ToInt32(house.Visitors[i])).Name);
+                                    }
+                                    catch { }
+                                }
+                                var UserID = house.Owners[0];
+                                TShockAPI.DB.User DbUser = new UserManager(TShock.DB).GetUserByID(System.Convert.ToInt32(UserID));
+                                TimeSpan t = DateTime.UtcNow.Subtract(DateTime.Parse(DbUser.LastAccessed));
+                                ply.SendMessage(string.Format("{0} ({1} | {2})", house.Name, house.ChatEnabled == 1 ? "True" : "False", house.Locked == 1 ? "Private" : "Public"), Color.LawnGreen);
+                                ply.SendMessage(string.Format("Owners: {0}", string.Join(", ", OwnersName)), Color.LawnGreen);
+                                ply.SendMessage(string.Format("Visitors: {0}", string.Join(", ", VisitorsName)), Color.LawnGreen);
+                                ply.SendMessage(string.Format("Last Online: {0}D, {1}H, {2}M", t.Days, t.Hours, t.Minutes), Color.LawnGreen);
+                                TShock.Log.Info("{0} used House Info: {1}", ply.Name, house.Name);
+                            }
+                            catch (Exception ex)
+                            {
+                                TShock.Log.Error(ex.ToString());
                             }
                         }
                         else
@@ -1173,8 +1093,23 @@ namespace HousingDistricts
                         int pageParamIndex = 0;
                         if (args.Parameters.Count > 1)
                             pageParamIndex = 1;
+
                         if (!PaginationTools.TryParsePageNumber(args.Parameters, pageParamIndex, args.Player, out pageNumber))
                             return;
+
+                        List<int> usersOwnedHouses = new List<int>();
+                        List<string> usersOwnedHousesName = new List<string>();
+                        var userMaxHouses = HTools.MaxCount(args.Player);
+                        for (int i = 0; i < HousingDistricts.Houses.Count; i++)
+                        {
+                            var house = HousingDistricts.Houses[i];
+                            if (HTools.OwnsHouse(ply.User.ID.ToString(), house))
+                            {
+                                usersOwnedHouses.Add(house.ID);
+                                usersOwnedHousesName.Add(house.Name);
+                            }
+                        }
+                        args.Player.SendInfoMessage("You've defined {0} of {1} houses so far: {2}", usersOwnedHouses.Count, userMaxHouses, string.Join(", ", usersOwnedHousesName));
 
                         List<string> lines = new List<string> {
                           "set <1/2> - Sets the temporary house points.",
